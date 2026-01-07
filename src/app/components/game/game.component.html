@@ -86,9 +86,9 @@
           </div>
           
           <div class="board-container-inner">
-            <!-- Rank labels (8-1) -->
+            <!-- Rank labels (1-8) matching the rows -->
             <div class="rank-labels-left">
-              <span *ngFor="let rank of [8,7,6,5,4,3,2,1]">{{ rank }}</span>
+              <span *ngFor="let row of [7,6,5,4,3,2,1,0]">{{ 8 - row }}</span>
             </div>
 
             <!-- Chess Board -->
@@ -118,9 +118,9 @@
               </div>
             </div>
 
-            <!-- Rank labels (8-1) right side -->
+            <!-- Rank labels (1-8) right side matching the rows -->
             <div class="rank-labels-right">
-              <span *ngFor="let rank of [8,7,6,5,4,3,2,1]">{{ rank }}</span>
+              <span *ngFor="let row of [7,6,5,4,3,2,1,0]">{{ 8 - row }}</span>
             </div>
           </div>
 
@@ -209,6 +209,20 @@
       <h2>Opponent Left</h2>
       <p>{{ opponentQuitMessage }}</p>
       <button class="ok-btn" (click)="handleOpponentQuit()">OK</button>
+    </div>
+  </div>
+
+  <!-- Checkmate Modal -->
+  <div class="checkmate-overlay" *ngIf="showCheckmateModal" (click)="handleCheckmateModalClose()">
+    <div class="checkmate-modal" (click)="$event.stopPropagation()">
+      <div class="checkmate-icon">♔</div>
+      <h2>Checkmate!</h2>
+      <div class="winner-info">
+        <p class="winner-label">Winner:</p>
+        <p class="winner-name">{{ winner }}</p>
+      </div>
+      <p class="checkmate-message">Congratulations! The game has ended.</p>
+      <button class="ok-btn" (click)="handleCheckmateModalClose()">Return to Home</button>
     </div>
   </div>
 

@@ -73,10 +73,29 @@ export class RegisterComponent {
     if (!this.password || this.password.length === 0) {
       return 'Password is required';
     }
-    if (this.password.length < 4) {
-      return 'Password must be at least 4 characters';
+    if (this.password.length < 6) {
+      return 'Password must be at least 6 characters';
     }
     return '';
+  }
+
+  getPasswordRequirements(): { met: boolean; text: string }[] {
+    return [
+      {
+        met: this.password.length >= 6,
+        text: 'At least 6 characters'
+      },
+      {
+        met: this.password.length > 0 && /[a-zA-Z]/.test(this.password),
+        text: 'Contains at least one letter'
+      }
+    ];
+  }
+
+  isPasswordValid(): boolean {
+    if (!this.password || this.password.length === 0) return false;
+    const requirements = this.getPasswordRequirements();
+    return requirements.every(req => req.met);
   }
 
   getPasswordStrength(): PasswordStrength {
@@ -104,7 +123,7 @@ export class RegisterComponent {
 
   isFormValid(): boolean {
     return !this.getUsernameError() && !this.getEmailError() && 
-           !this.getPasswordError() && this.password.length >= 4;
+           !this.getPasswordError() && this.isPasswordValid();
   }
 
   togglePasswordVisibility() {

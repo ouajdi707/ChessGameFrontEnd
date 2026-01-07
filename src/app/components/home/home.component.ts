@@ -1,8 +1,9 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
-import { WebSocketService, OnlineUser, Invitation } from '../../services/websocket.service';
+import { WebSocketService } from '../../services/websocket.service';
+import { InvitationService } from '../../services/invitation.service';
+import { OnlineUser, Invitation } from '../../models';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -24,7 +25,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private webSocketService: WebSocketService,
     private router: Router,
-    private http: HttpClient
+    private invitationService: InvitationService
   ) {}
 
   ngOnInit() {
@@ -87,7 +88,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         // No active game, check if invitation still exists on server
         if (this.pendingInvitation) {
           // Verify invitation still exists
-          this.http.get<any>(`http://localhost:8080/api/invitations/pending/${this.currentUsername}`)
+          this.invitationService.getPendingInvitation(this.currentUsername!)
             .subscribe({
               error: (error) => {
                 if (error.status === 404) {

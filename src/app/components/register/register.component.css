@@ -400,6 +400,50 @@ input:focus ~ .input-focus-line {
   line-height: 1.5;
 }
 
+.password-requirements {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.requirement-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  transition: all 0.3s ease;
+}
+
+.requirement-item.met {
+  color: #2ecc71;
+}
+
+.requirement-item.not-met {
+  color: #95a5a6;
+}
+
+.requirement-icon {
+  font-size: 16px;
+  font-weight: bold;
+  width: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.requirement-item.met .requirement-icon {
+  color: #2ecc71;
+}
+
+.requirement-item.not-met .requirement-icon {
+  color: #95a5a6;
+}
+
+.requirement-text {
+  flex: 1;
+}
+
 .submit-btn {
   width: 100%;
   padding: 18px 24px;

@@ -117,8 +117,15 @@
           <div class="error-message" *ngIf="passwordTouched && getPasswordError()">
             {{ getPasswordError() }}
           </div>
-          <small class="password-hint" *ngIf="!getPasswordError() || !passwordTouched">
-            Use at least 4 characters. Mix letters, numbers, and symbols for better security.
+          <div class="password-requirements" *ngIf="password && password.length > 0">
+            <div class="requirement-item" *ngFor="let req of getPasswordRequirements()" 
+                 [class.met]="req.met" [class.not-met]="!req.met">
+              <span class="requirement-icon">{{ req.met ? '✓' : '○' }}</span>
+              <span class="requirement-text">{{ req.text }}</span>
+            </div>
+          </div>
+          <small class="password-hint" *ngIf="(!password || password.length === 0) && !passwordTouched">
+            Password must be at least 6 characters and contain letters
           </small>
         </div>
 

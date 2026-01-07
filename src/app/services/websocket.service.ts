@@ -1,19 +1,8 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-
-export interface OnlineUser {
-  username: string;
-  isOnline: boolean;
-}
-
-export interface Invitation {
-  type: string;
-  fromUsername: string;
-  toUsername: string;
-  gameId?: number;
-  message: string;
-}
+import { environment } from '../../environments/environment';
+import { OnlineUser, Invitation } from '../models';
 
 @Injectable({
   providedIn: 'root'
@@ -36,7 +25,7 @@ export class WebSocketService {
     this.currentUsername = username;
     
     // Mark user as online
-    this.http.post(`http://localhost:8080/api/users/online/${username}`, {}).subscribe({
+    this.http.post(`${environment.apiUrl}/users/online/${username}`, {}).subscribe({
       next: () => {
         this.connected = true;
         this.loadOnlineUsers(username);
@@ -64,7 +53,7 @@ export class WebSocketService {
 
   disconnect(): void {
     if (this.currentUsername && this.connected) {
-      this.http.delete(`http://localhost:8080/api/users/online/${this.currentUsername}`).subscribe();
+      this.http.delete(`${environment.apiUrl}/users/online/${this.currentUsername}`).subscribe();
     }
     if (this.usersPollingInterval) {
       clearInterval(this.usersPollingInterval);
@@ -77,7 +66,7 @@ export class WebSocketService {
   }
 
   sendInvitation(fromUsername: string, toUsername: string): void {
-    this.http.post('http://localhost:8080/api/invitations/send', {
+    this.http.post(`${environment.apiUrl}/invitations/send`, {
       fromUsername,
       toUsername
     }).subscribe({
@@ -87,14 +76,14 @@ export class WebSocketService {
   }
 
   acceptInvitation(fromUsername: string, toUsername: string) {
-    return this.http.post('http://localhost:8080/api/invitations/accept', {
+    return this.http.post(`${environment.apiUrl}/invitations/accept`, {
       fromUsername,
       toUsername
     });
   }
 
   declineInvitation(fromUsername: string, toUsername: string): void {
-    this.http.post('http://localhost:8080/api/invitations/decline', {
+    this.http.post(`${environment.apiUrl}/invitations/decline`, {
       fromUsername,
       toUsername
     }).subscribe({
@@ -112,7 +101,7 @@ export class WebSocketService {
   }
 
   private loadOnlineUsers(currentUser: string): void {
-    this.http.get<OnlineUser[]>(`http://localhost:8080/api/users/online?currentUser=${currentUser}`)
+    this.http.get<OnlineUser[]>(`${environment.apiUrl}/users/online?currentUser=${currentUser}`)
       .subscribe({
         next: (users) => {
           this.onlineUsers$.next(users);
@@ -125,7 +114,7 @@ export class WebSocketService {
 
   private checkInvitations(username: string): void {
     // Poll for pending invitations
-    this.http.get<any>(`http://localhost:8080/api/invitations/pending/${username}`)
+    this.http.get<any>(`${environment.apiUrl}/invitations/pending/${username}`)
       .subscribe({
         next: (invitation) => {
           if (invitation && invitation.type === 'INVITATION') {
@@ -151,13 +140,13 @@ export class WebSocketService {
   }
 
   checkActiveGame(username: string) {
-    return this.http.get<any>(`http://localhost:8080/api/games/active/${username}`);
+    return this.http.get<any>(`${environment.apiUrl}/games/active/${username}`);
   }
 
   clearPendingInvitation() {
     // Clear pending invitation by making a request to remove it
     if (this.currentUsername) {
-      this.http.delete(`http://localhost:8080/api/invitations/pending/${this.currentUsername}`).subscribe();
+      this.http.delete(`${environment.apiUrl}/invitations/pending/${this.currentUsername}`).subscribe();
     }
   }
 

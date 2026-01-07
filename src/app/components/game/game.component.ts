@@ -1,25 +1,11 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
+import { GameService } from '../../services/game.service';
+import { MoveService } from '../../services/move.service';
+import { InvitationService } from '../../services/invitation.service';
+import { GameInfo, Move } from '../../models';
 import { Subscription } from 'rxjs';
-
-interface GameInfo {
-  id: number;
-  player1: string;
-  player2: string;
-  status: string;
-  currentPlayer: string;
-}
-
-interface Move {
-  moveId?: number;
-  gameId: number;
-  username: string;
-  fromSquare: string;
-  toSquare: string;
-  moveNumber: number;
-}
 
 @Component({
   selector: 'app-game',
@@ -40,6 +26,8 @@ export class GameComponent implements OnInit, OnDestroy {
   opponentQuit: boolean = false;
   opponentQuitMessage: string = '';
   validMoves: string[] = [];
+  showCheckmateModal: boolean = false;
+  winner: string = '';
   private movePollingInterval: any;
   private gamePollingInterval: any;
 
@@ -49,8 +37,10 @@ export class GameComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private http: HttpClient,
-    private authService: AuthService
+    private authService: AuthService,
+    private gameService: GameService,
+    private moveService: MoveService,
+    private invitationService: InvitationService
   ) {
     this.initializeBoard();
   }
@@ -126,14 +116,20 @@ export class GameComponent implements OnInit, OnDestroy {
   loadGame() {
     if (!this.gameId) return;
     
-    this.http.get<GameInfo>(`http://localhost:8080/api/games/${this.gameId}`)
+    this.gameService.getGame(this.gameId)
       .subscribe({
         next: (game) => {
           this.gameInfo = game;
           this.isMyTurn = game.currentPlayer === this.currentUsername;
           
+          // Check if game is finished (checkmate)
+          if (game.status === 'FINISHED' && game.winner) {
+            this.winner = game.winner;
+            this.showCheckmateModal = true;
+            this.isMyTurn = false; // No more moves
+          }
           // Check if game is abandoned
-          if (game.status === 'ABANDONED') {
+          else if (game.status === 'ABANDONED') {
             this.opponentQuitMessage = 'The game has been abandoned.';
             this.opponentQuit = true;
           }
@@ -152,7 +148,7 @@ export class GameComponent implements OnInit, OnDestroy {
   loadMoves() {
     if (!this.gameId) return;
     
-    this.http.get<Move[]>(`http://localhost:8080/api/moves/game/${this.gameId}`)
+    this.moveService.getMoves(this.gameId)
       .subscribe({
         next: (moves) => {
           this.moves = moves;
@@ -274,7 +270,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
     this.validMoves = []; // Clear first
     
-    this.http.get<any>(`http://localhost:8080/api/moves/valid/${this.gameId}?fromSquare=${square}&username=${this.currentUsername}`)
+    this.moveService.getValidMoves(this.gameId, square, this.currentUsername)
       .subscribe({
         next: (response) => {
           if (response.validMoves && Array.isArray(response.validMoves)) {
@@ -297,15 +293,22 @@ export class GameComponent implements OnInit, OnDestroy {
   makeMove(fromSquare: string, toSquare: string) {
     if (!this.gameId || !this.currentUsername) return;
 
-    this.http.post('http://localhost:8080/api/moves', {
+    this.moveService.makeMove({
       gameId: this.gameId,
       username: this.currentUsername,
       fromSquare: fromSquare,
       toSquare: toSquare
     }).subscribe({
-      next: (response: any) => {
+      next: (response) => {
         if (response.valid) {
-          this.showToastMessage('Move made successfully!', 'success');
+          // Check if this move resulted in checkmate
+          if (response.isCheckmate && response.winner) {
+            this.winner = response.winner;
+            this.showCheckmateModal = true;
+            this.showToastMessage(response.message || 'Checkmate!', 'success');
+          } else {
+            this.showToastMessage('Move made successfully!', 'success');
+          }
           this.loadMoves();
           this.loadGame();
         } else {
@@ -339,13 +342,13 @@ export class GameComponent implements OnInit, OnDestroy {
   quitGame() {
     if (!this.gameId || !this.currentUsername) return;
 
-    this.http.post(`http://localhost:8080/api/games/${this.gameId}/quit?username=${this.currentUsername}`, {})
+    this.gameService.quitGame(this.gameId, this.currentUsername)
       .subscribe({
         next: () => {
           this.showQuitConfirm = false;
           this.showToastMessage('You left the game', 'info');
           // Clear any pending invitations
-          this.http.delete(`http://localhost:8080/api/invitations/pending/${this.currentUsername}`).subscribe();
+          this.invitationService.clearPendingInvitation(this.currentUsername!).subscribe();
           setTimeout(() => {
             this.router.navigate(['/home']);
           }, 1500);
@@ -361,6 +364,19 @@ export class GameComponent implements OnInit, OnDestroy {
     this.router.navigate(['/home']);
   }
 
+  handleCheckmateModalClose() {
+    this.showCheckmateModal = false;
+    // Clear any pending invitations before going back (don't wait for response)
+    if (this.currentUsername) {
+      this.invitationService.clearPendingInvitation(this.currentUsername).subscribe({
+        next: () => {},
+        error: () => {}
+      });
+    }
+    // Navigate immediately - use navigateByUrl for more reliable navigation
+    this.router.navigateByUrl('/home');
+  }
+
   isSquareValidMove(square: string): boolean {
     return this.validMoves.includes(square);
   }
@@ -374,7 +390,7 @@ export class GameComponent implements OnInit, OnDestroy {
   goBack() {
     // Clear any pending invitations before going back
     if (this.currentUsername) {
-      this.http.delete(`http://localhost:8080/api/invitations/pending/${this.currentUsername}`).subscribe();
+      this.invitationService.clearPendingInvitation(this.currentUsername).subscribe();
     }
     this.router.navigate(['/home']);
   }
