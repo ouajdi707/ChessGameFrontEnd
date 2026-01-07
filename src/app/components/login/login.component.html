@@ -1,0 +1,116 @@
+<div class="login-container">
+  <div class="chess-background">
+    <div class="chess-pattern"></div>
+  </div>
+  
+  <div class="login-content">
+    <div class="chess-logo">
+      <div class="chess-piece-wrapper">
+        <div class="chess-piece">♔</div>
+        <div class="piece-glow"></div>
+      </div>
+      <h1>Chess Platform</h1>
+      <p class="tagline">Master the Game of Kings</p>
+    </div>
+
+    <div class="login-card">
+      <div class="card-header">
+        <h2>Welcome Back</h2>
+        <p class="subtitle">Sign in to continue your chess journey</p>
+      </div>
+      
+      <form (ngSubmit)="onSubmit()" class="login-form">
+        <div class="form-group">
+          <label for="username" [class.error]="usernameTouched && getUsernameError()">
+            <span class="label-icon">👤</span>
+            Username
+          </label>
+          <div class="input-wrapper">
+            <input
+              type="text"
+              id="username"
+              name="username"
+              [(ngModel)]="username"
+              (blur)="usernameTouched = true"
+              (focus)="usernameTouched = true"
+              required
+              placeholder="Enter your username"
+              [disabled]="isLoading"
+              [class.error]="usernameTouched && getUsernameError()"
+              autocomplete="username"
+            />
+            <span class="input-focus-line"></span>
+          </div>
+          <div class="error-message" *ngIf="usernameTouched && getUsernameError()">
+            {{ getUsernameError() }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password" [class.error]="passwordTouched && getPasswordError()">
+            <span class="label-icon">🔒</span>
+            Password
+          </label>
+          <div class="input-wrapper password-wrapper">
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              id="password"
+              name="password"
+              [(ngModel)]="password"
+              (blur)="passwordTouched = true"
+              (focus)="passwordTouched = true"
+              required
+              placeholder="Enter your password"
+              [disabled]="isLoading"
+              [class.error]="passwordTouched && getPasswordError()"
+              autocomplete="current-password"
+            />
+            <button 
+              type="button" 
+              class="password-toggle"
+              (click)="togglePasswordVisibility()"
+              [disabled]="isLoading"
+              tabindex="-1"
+            >
+              {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+            </button>
+            <span class="input-focus-line"></span>
+          </div>
+          <div class="error-message" *ngIf="passwordTouched && getPasswordError()">
+            {{ getPasswordError() }}
+          </div>
+        </div>
+
+        <button 
+          type="submit" 
+          [disabled]="isLoading || !isFormValid()" 
+          class="submit-btn"
+          [class.loading]="isLoading"
+        >
+          <span *ngIf="!isLoading" class="btn-content">
+            <span>Sign In</span>
+            <span class="btn-arrow">→</span>
+          </span>
+          <span *ngIf="isLoading" class="loading-content">
+            <span class="spinner"></span>
+            <span>Signing in...</span>
+          </span>
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        <p>New to Chess Platform? 
+          <a (click)="goToRegister()" class="link-primary">
+            Create an account
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <app-toast
+    [message]="toastMessage"
+    [type]="toastType"
+    [show]="showToast"
+  ></app-toast>
+</div>

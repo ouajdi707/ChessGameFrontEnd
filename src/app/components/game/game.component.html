@@ -1,0 +1,220 @@
+<div class="game-container">
+  <div class="chess-background">
+    <div class="chess-pattern"></div>
+  </div>
+
+  <div class="game-content">
+    <!-- Professional Header -->
+    <header class="game-header">
+      <div class="header-left">
+        <button class="back-btn" (click)="goBack()">
+          <span class="btn-icon">←</span>
+          <span>Back</span>
+        </button>
+        <div class="game-title">
+          <div class="title-icon">♔</div>
+          <h1>Chess Game</h1>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <div class="players-matchup" *ngIf="gameInfo">
+          <div class="player-card" [class.active-turn]="gameInfo.currentPlayer === gameInfo.player1">
+            <div class="player-avatar-wrapper">
+              <div class="player-avatar white">
+                <span>♔</span>
+              </div>
+              <div class="turn-ring" *ngIf="gameInfo.currentPlayer === gameInfo.player1"></div>
+            </div>
+            <div class="player-info">
+              <span class="player-name">{{ gameInfo.player1 }}</span>
+              <span class="player-role">White</span>
+            </div>
+            <div class="turn-badge" *ngIf="gameInfo.currentPlayer === gameInfo.player1">
+              <span>Your Turn</span>
+            </div>
+          </div>
+
+          <div class="vs-divider">
+            <div class="vs-line"></div>
+            <span class="vs-text">VS</span>
+            <div class="vs-line"></div>
+          </div>
+
+          <div class="player-card" [class.active-turn]="gameInfo.currentPlayer === gameInfo.player2">
+            <div class="player-avatar-wrapper">
+              <div class="player-avatar black">
+                <span>♚</span>
+              </div>
+              <div class="turn-ring" *ngIf="gameInfo.currentPlayer === gameInfo.player2"></div>
+            </div>
+            <div class="player-info">
+              <span class="player-name">{{ gameInfo.player2 }}</span>
+              <span class="player-role">Black</span>
+            </div>
+            <div class="turn-badge" *ngIf="gameInfo.currentPlayer === gameInfo.player2">
+              <span>Your Turn</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="status-indicator" *ngIf="gameInfo">
+          <div class="status-dot" [class.active]="isMyTurn"></div>
+          <span class="status-text">{{ isMyTurn ? 'Your Turn' : 'Waiting' }}</span>
+        </div>
+        <button 
+          class="exit-game-btn" 
+          (click)="showQuitConfirm = true" 
+          *ngIf="gameInfo && gameInfo.status === 'ACTIVE'"
+          title="Exit Game"
+        >
+          <span class="exit-icon">⨯</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Game Area -->
+    <div class="game-main">
+      <!-- Chess Board Section -->
+      <div class="board-section">
+        <div class="board-wrapper">
+          <!-- File labels (a-h) -->
+          <div class="file-labels">
+            <span *ngFor="let file of ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']">{{ file }}</span>
+          </div>
+          
+          <div class="board-container-inner">
+            <!-- Rank labels (8-1) -->
+            <div class="rank-labels-left">
+              <span *ngFor="let rank of [8,7,6,5,4,3,2,1]">{{ rank }}</span>
+            </div>
+
+            <!-- Chess Board -->
+            <div class="chess-board">
+              <div 
+                *ngFor="let row of [7,6,5,4,3,2,1,0]; let rowIndex = index"
+                class="board-row"
+              >
+                <div 
+                  *ngFor="let col of [0,1,2,3,4,5,6,7]; let colIndex = index"
+                  class="board-square"
+                  [class.dark]="(row + col) % 2 === 1"
+                  [class.selected]="isSquareSelected(getSquareName(row, col))"
+                  [class.valid-move]="isSquareValidMove(getSquareName(row, col))"
+                  [class.valid-capture]="isSquareValidMove(getSquareName(row, col)) && hasPieceAtSquare(getSquareName(row, col))"
+                  [class.last-move]="getLastMoveToSquare() === getSquareName(row, col)"
+                  [class.clickable]="isMyTurn"
+                  (click)="onSquareClick(getSquareName(row, col))"
+                >
+                  <div class="square-content">
+                    <span class="piece" *ngIf="getPieceAtSquare(row, col)">
+                      {{ getPieceAtSquare(row, col) }}
+                    </span>
+                    <span class="square-label">{{ getSquareName(row, col) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Rank labels (8-1) right side -->
+            <div class="rank-labels-right">
+              <span *ngFor="let rank of [8,7,6,5,4,3,2,1]">{{ rank }}</span>
+            </div>
+          </div>
+
+          <!-- File labels (a-h) bottom -->
+          <div class="file-labels">
+            <span *ngFor="let file of ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']">{{ file }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Side Panel -->
+      <div class="side-panel">
+        <!-- Move History -->
+        <div class="panel-section move-history-panel">
+          <div class="section-header">
+            <span class="section-icon">📋</span>
+            <h3>Move History</h3>
+            <span class="move-count" *ngIf="moves.length > 0">{{ moves.length }} moves</span>
+          </div>
+          <div class="moves-list">
+            <div 
+              *ngFor="let move of moves; let i = index"
+              class="move-item"
+              [class.white-move]="i % 2 === 0"
+              [class.black-move]="i % 2 === 1"
+            >
+              <span class="move-number">{{ move.moveNumber }}.</span>
+              <div class="move-details">
+                <span class="move-player">{{ move.username }}</span>
+                <span class="move-notation">{{ move.fromSquare }} → {{ move.toSquare }}</span>
+              </div>
+            </div>
+            <div class="empty-moves" *ngIf="moves.length === 0">
+              <div class="empty-icon">♟️</div>
+              <p>No moves yet</p>
+              <span>Make the first move!</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Game Info -->
+        <div class="panel-section game-info-panel">
+          <div class="section-header">
+            <span class="section-icon">ℹ️</span>
+            <h3>Game Info</h3>
+          </div>
+          <div class="info-content" *ngIf="gameInfo">
+            <div class="info-item">
+              <span class="info-label">Status:</span>
+              <span class="info-value" [class.active]="gameInfo.status === 'ACTIVE'">
+                {{ gameInfo.status }}
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Current Turn:</span>
+              <span class="info-value">{{ gameInfo.currentPlayer }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quit Confirmation Modal -->
+  <div class="quit-modal-overlay" *ngIf="showQuitConfirm" (click)="showQuitConfirm = false">
+    <div class="quit-modal" (click)="$event.stopPropagation()">
+      <div class="quit-modal-header">
+        <div class="modal-icon">⚠️</div>
+        <h3>Exit Game?</h3>
+        <button class="close-btn" (click)="showQuitConfirm = false">×</button>
+      </div>
+      <div class="quit-modal-body">
+        <p>Are you sure you want to leave this game? The other player will be notified.</p>
+      </div>
+      <div class="quit-modal-actions">
+        <button class="cancel-btn" (click)="showQuitConfirm = false">Cancel</button>
+        <button class="confirm-quit-btn" (click)="quitGame()">Exit Game</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Opponent Quit Modal -->
+  <div class="opponent-quit-overlay" *ngIf="opponentQuit" (click)="handleOpponentQuit()">
+    <div class="opponent-quit-modal" (click)="$event.stopPropagation()">
+      <div class="quit-icon">⚠️</div>
+      <h2>Opponent Left</h2>
+      <p>{{ opponentQuitMessage }}</p>
+      <button class="ok-btn" (click)="handleOpponentQuit()">OK</button>
+    </div>
+  </div>
+
+  <app-toast
+    [message]="toastMessage"
+    [type]="toastType"
+    [show]="showToast"
+  ></app-toast>
+</div>

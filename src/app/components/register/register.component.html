@@ -1,0 +1,157 @@
+<div class="register-container">
+  <div class="chess-background">
+    <div class="chess-pattern"></div>
+  </div>
+  
+  <div class="register-content">
+    <div class="chess-logo">
+      <div class="chess-piece-wrapper">
+        <div class="chess-piece">♔</div>
+        <div class="piece-glow"></div>
+      </div>
+      <h1>Chess Platform</h1>
+      <p class="tagline">Join the Game of Kings</p>
+    </div>
+
+    <div class="register-card">
+      <div class="card-header">
+        <h2>Create Account</h2>
+        <p class="subtitle">Start your chess journey today</p>
+      </div>
+      
+      <form (ngSubmit)="onSubmit()" class="register-form">
+        <div class="form-group">
+          <label for="username" [class.error]="usernameTouched && getUsernameError()">
+            <span class="label-icon">👤</span>
+            Username
+          </label>
+          <div class="input-wrapper">
+            <input
+              type="text"
+              id="username"
+              name="username"
+              [(ngModel)]="username"
+              (blur)="usernameTouched = true"
+              (focus)="usernameTouched = true"
+              required
+              placeholder="Choose a username"
+              [disabled]="isLoading"
+              [class.error]="usernameTouched && getUsernameError()"
+              autocomplete="username"
+            />
+            <span class="input-focus-line"></span>
+          </div>
+          <div class="error-message" *ngIf="usernameTouched && getUsernameError()">
+            {{ getUsernameError() }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email" [class.error]="emailTouched && getEmailError()">
+            <span class="label-icon">📧</span>
+            Email
+          </label>
+          <div class="input-wrapper">
+            <input
+              type="email"
+              id="email"
+              name="email"
+              [(ngModel)]="email"
+              (blur)="emailTouched = true"
+              (focus)="emailTouched = true"
+              required
+              placeholder="Enter your email"
+              [disabled]="isLoading"
+              [class.error]="emailTouched && getEmailError()"
+              autocomplete="email"
+            />
+            <span class="input-focus-line"></span>
+          </div>
+          <div class="error-message" *ngIf="emailTouched && getEmailError()">
+            {{ getEmailError() }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password" [class.error]="passwordTouched && getPasswordError()">
+            <span class="label-icon">🔒</span>
+            Password
+          </label>
+          <div class="input-wrapper password-wrapper">
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              id="password"
+              name="password"
+              [(ngModel)]="password"
+              (blur)="passwordTouched = true"
+              (focus)="passwordTouched = true"
+              required
+              placeholder="Create a password"
+              [disabled]="isLoading"
+              [class.error]="passwordTouched && getPasswordError()"
+              autocomplete="new-password"
+            />
+            <button 
+              type="button" 
+              class="password-toggle"
+              (click)="togglePasswordVisibility()"
+              [disabled]="isLoading"
+              tabindex="-1"
+            >
+              {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+            </button>
+            <span class="input-focus-line"></span>
+          </div>
+          <div class="password-strength" *ngIf="password && password.length > 0">
+            <div class="strength-bar">
+              <div 
+                class="strength-fill" 
+                [style.width.%]="(getPasswordStrength().score / 5) * 100"
+                [style.background-color]="getPasswordStrength().color"
+              ></div>
+            </div>
+            <div class="strength-label" [style.color]="getPasswordStrength().color">
+              {{ getPasswordStrength().label }}
+            </div>
+          </div>
+          <div class="error-message" *ngIf="passwordTouched && getPasswordError()">
+            {{ getPasswordError() }}
+          </div>
+          <small class="password-hint" *ngIf="!getPasswordError() || !passwordTouched">
+            Use at least 4 characters. Mix letters, numbers, and symbols for better security.
+          </small>
+        </div>
+
+        <button 
+          type="submit" 
+          [disabled]="isLoading || !isFormValid()" 
+          class="submit-btn"
+          [class.loading]="isLoading"
+        >
+          <span *ngIf="!isLoading" class="btn-content">
+            <span>Create Account</span>
+            <span class="btn-arrow">→</span>
+          </span>
+          <span *ngIf="isLoading" class="loading-content">
+            <span class="spinner"></span>
+            <span>Creating account...</span>
+          </span>
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        <p>Already have an account? 
+          <a (click)="goToLogin()" class="link-primary">
+            Sign in
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <app-toast
+    [message]="toastMessage"
+    [type]="toastType"
+    [show]="showToast"
+  ></app-toast>
+</div>

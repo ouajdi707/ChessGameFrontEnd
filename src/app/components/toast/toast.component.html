@@ -1,0 +1,7 @@
+<div class="toast" [class.show]="show" [class.success]="type === 'success'" [class.error]="type === 'error'" [class.info]="type === 'info'">
+  <div class="toast-content">
+    <span class="toast-icon">{{ getIcon() }}</span>
+    <span class="toast-message">{{ message }}</span>
+  </div>
+</div>
+

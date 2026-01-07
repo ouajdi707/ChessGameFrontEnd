@@ -1,0 +1,130 @@
+<div class="home-container">
+  <div class="chess-background">
+    <div class="chess-pattern"></div>
+  </div>
+
+  <div class="home-content">
+    <!-- Header -->
+    <header class="home-header">
+      <div class="header-left">
+        <div class="chess-logo-small">
+          <span class="chess-icon">♔</span>
+          <h1>Chess Platform</h1>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="user-info">
+          <span class="user-icon">👤</span>
+          <span class="username">{{ currentUsername }}</span>
+        </div>
+        <button class="logout-btn" (click)="logout()">Logout</button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Online Users Section -->
+      <div class="section online-users-section">
+        <div class="section-header">
+          <h2>
+            <span class="section-icon">👥</span>
+            Online Players
+          </h2>
+          <div class="online-badge">{{ onlineUsers.length }}</div>
+        </div>
+        
+        <div class="users-list" *ngIf="onlineUsers.length > 0">
+          <div class="user-card" *ngFor="let user of onlineUsers">
+            <div class="user-avatar">
+              <span class="avatar-icon">♟️</span>
+              <div class="online-indicator"></div>
+            </div>
+            <div class="user-details">
+              <span class="user-name">{{ user.username }}</span>
+              <span class="user-status">Online</span>
+            </div>
+            <button 
+              class="invite-btn"
+              (click)="inviteUser(user.username)"
+              [disabled]="pendingInvitation !== null"
+            >
+              <span>Invite</span>
+              <span class="btn-icon">♔</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="empty-state" *ngIf="onlineUsers.length === 0">
+          <div class="empty-icon">♟️</div>
+          <p>No other players online</p>
+          <span class="empty-hint">Wait for other players to join</span>
+        </div>
+      </div>
+
+      <!-- Pending Invitation -->
+      <div class="invitation-overlay" *ngIf="pendingInvitation" (click)="$event.stopPropagation()">
+        <div class="invitation-modal">
+          <div class="invitation-close" (click)="declineInvitation()">×</div>
+          
+          <div class="invitation-header">
+            <div class="chess-pieces-animation">
+              <div class="piece piece-white">♔</div>
+              <div class="piece piece-black">♚</div>
+            </div>
+            <h2>Game Invitation</h2>
+            <p class="invitation-subtitle">Challenge Received</p>
+          </div>
+
+          <div class="invitation-body">
+            <div class="player-info">
+              <div class="player-avatar challenger">
+                <span class="avatar-piece">♔</span>
+                <div class="avatar-glow"></div>
+              </div>
+              <div class="vs-divider">
+                <span class="vs-text">VS</span>
+                <div class="vs-line"></div>
+              </div>
+              <div class="player-avatar you">
+                <span class="avatar-piece">♚</span>
+                <div class="avatar-glow"></div>
+              </div>
+            </div>
+            
+            <div class="challenger-info">
+              <p class="challenger-name">{{ pendingInvitation.fromUsername }}</p>
+              <p class="challenger-message">wants to challenge you to a game of chess!</p>
+            </div>
+
+            <div class="chess-board-preview">
+              <div class="board-grid">
+                <div class="board-square" *ngFor="let i of [0,1,2,3,4,5,6,7]">
+                  <div class="square" [class.dark]="i % 2 === 0"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="invitation-actions">
+            <button class="accept-btn" (click)="acceptInvitation()">
+              <span class="btn-icon">✓</span>
+              <span>Accept Challenge</span>
+              <div class="btn-shine"></div>
+            </button>
+            <button class="decline-btn" (click)="declineInvitation()">
+              <span class="btn-icon">✕</span>
+              <span>Decline</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <app-toast
+    [message]="toastMessage"
+    [type]="toastType"
+    [show]="showToast"
+  ></app-toast>
+</div>
+
